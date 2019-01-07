@@ -1,29 +1,31 @@
 
-#############
-#randomReads#
-#############
+#randomReads
 
 Tuomo Hartonen 03.01.2019
 
-INTRODUCTION
+##INTRODUCTION
 
 RandomReads is a simple python script for embedding transcription factor binding motifs (input as PFM matrices) to given DNA sequences or to a given mononucleotide background. Python packages needed (and the versions tested with):
 
+```
 biopython==1.72
 numpy==1.15.1
+```
+
 
 No installation is required. To use the randomReads.py script the src/ directory should be added to $PATH or the .py-file from the src/ directory should be copied to a directory already listed in your $PATH. If we assume you have unpacked randomReads to directory home/randomReads/, you should add the following line to your ~/.bashrc or whatever file you use to set your environment variables
 
-'export PATH=$PATH:home/PeakXus/src'
+`export PATH=$PATH:home/randomReads/src`
 
 In examples below we use Bedtools (https://bedtools.readthedocs.io/en/latest/index.html) to fetch random background sequences from the human genome.
 
-USAGE
+##USAGE
 
+```
 usage: randomReads.py [-h] [--PFM PFM] [--seqs SEQS] [--L L] [--N N]
                       [--start START]
-		                            [--bgfreqs BGFREQS BGFREQS BGFREQS BGFREQS]
-					                          outfile
+		      [--bgfreqs BGFREQS BGFREQS BGFREQS BGFREQS]
+		      outfile
 
 positional arguments:
   outfile               Output fasta-file name.
@@ -42,21 +44,21 @@ optional arguments:
 			by the sequence length of --seqs if given).															--N N                 Number of sequences generated (default=100000,																	    overruled by the number of sequences in --seqs if
 			given).																				--start START         Start position of the inserted PFM-sequences
 			(default=middle of the read).																	--bgfreqs BGFREQS BGFREQS BGFREQS BGFREQS																				    Background nucleotide frequencies: A, C, G, T																	  (default=0.25,0.25,0.25,0.25).															      
+```
 
-EXAMPLE 1: EMBEDDING CTCF MOTIF TO GENOMIC BACKGROUND
+
+##EXAMPLE 1: EMBEDDING CTCF MOTIF TO GENOMIC BACKGROUND
 
 We use bedtools to fetch random regions from the hg19 human genome assembly. First we extract 1000000 random 100 bp long regions from the genome:
 
-'bedtools random -l 100 -n 1000000 -g path/hg19.chrom.sizes > hg19_bg.bed'
+`bedtools random -l 100 -n 1000000 -g path/hg19.chrom.sizes > hg19_bg.bed`
 
 Then we fetch the underlying sequences:
 
-'bedtools getfasta -fi hg19.fasta -bed hg19_bg.bed -fo hg19_bg.fasta'
+`bedtools getfasta -fi hg19.fasta -bed hg19_bg.bed -fo hg19_bg.fasta`
 
 We use these sequences as background templates and place the CTCF motif in the middle of the 100 bp sequences:
 
-'randomReads.py hg19_bg_CTCF_embedded.fasta --PFM CTCF_AJ_TAGCGA20NGCT_NGCGCCMYCTAGYGGTN_m2_c4_Cell2013.pfm --seqs hg19_bg.fasta'
+`randomReads.py hg19_bg_CTCF_embedded.fasta --PFM CTCF_AJ_TAGCGA20NGCT_NGCGCCMYCTAGYGGTN_m2_c4_Cell2013.pfm --seqs hg19_bg.fasta`
 
-The sequences with the CTCF motif embedded in the middle are now in file hg19_bg_CTCF_embedded.fasta. To quickly check that the output sequences look as expected, they can be visualized as a heatmap (WARNING: this can take long for large number of sequeces):
-
-'seq2heatmap.py hg19_bg_CTCF_embedded.fasta hg19_bg_CTCF_embedded.png --N 100000 --L 100 --title hg19-CTCF'
+The sequences with the CTCF motif embedded in the middle are now in file hg19_bg_CTCF_embedded.fasta.
