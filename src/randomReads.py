@@ -57,8 +57,9 @@ def randomReads():
                     if args.start==None: start = int(len(seq)/2-L/2)
                     else: start = args.start
                     first = False
-                    
-                header = ">"+str(i)
+
+                header = fasta.id
+                header = ">"+header+":embed"
                 randoms = np.random.rand(L)
                 PFM_seq = ""
                 for i in range(0,len(randoms)):
@@ -91,8 +92,8 @@ def randomReads():
             full_PFM[:,start:start+L] = PFM
 
 
-        print(full_PFM)
-        print(full_PFM.shape)
+        #print(full_PFM)
+        #print(full_PFM.shape)
         
         #creating the sequences
         with open(args.outfile,'wt') as outfile:
