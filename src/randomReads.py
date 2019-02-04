@@ -24,6 +24,7 @@ def randomReads():
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
     parser.add_argument("--start",help="Start position of the inserted PFM-sequences (default=middle of the read).",type=int,default=None)
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
+    parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (deafult=embed).",type=str,default=":embed")
     
     args = parser.parse_args()
 
@@ -59,7 +60,7 @@ def randomReads():
                     first = False
 
                 header = fasta.id
-                header = ">"+header+":embed"
+                header = ">"+header+args.addToReadName
                 randoms = np.random.rand(L)
                 PFM_seq = ""
                 for i in range(0,len(randoms)):
