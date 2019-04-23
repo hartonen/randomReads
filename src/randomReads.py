@@ -22,7 +22,7 @@ def randomReads():
     parser.add_argument("--seqs",help="Full path to the fasta/fastq-file containing the reads where the PFM is embedded to. If not given, background is generated using the given mononucleotide frequencies.",type=str,default=None)
     parser.add_argument("--L",help="Length of the output sequences (default=100, overruled by the sequence length of --seqs if given).",type=int,default=100)
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
-    parser.add_argument("--start",help="Start position of the inserted PFM-sequences (default=middle of the read).",type=int,default=None)
+    parser.add_argument("--start",help="Start position of the inserted PFM-sequences (default=random).",type=int,default=None)
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
     parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (deafult=embed).",type=str,default=":embed")
     
@@ -55,10 +55,11 @@ def randomReads():
                 seq = str(fasta.seq).upper()
                 if first:
                     #determining the insertion position for the PFM-derived sequences
-                    if args.start==None: start = int(len(seq)/2-L/2)
+                    if args.start==None: start = np.random.randint(0,high=len(seq)-L)#int(len(seq)/2-L/2)
                     else: start = args.start
                     first = False
 
+                if args.start==None: start = np.random.randint(0,high=len(seq)-L)
                 header = fasta.id
                 header = ">"+header+args.addToReadName
                 randoms = np.random.rand(L)
@@ -86,7 +87,7 @@ def randomReads():
         #inserting the PFM-counts if needed
         if args.PFM!=None:
             #determining the insertion position for the PFM-derived sequences
-            if args.start==None: start = int(args.L/2-L/2)
+            if args.start==None: start = int(np.random.randint(0,high=len(seq)-L))#int(args.L/2-L/2)
             else: start = args.start
 
             #adding the PFM entries
