@@ -25,7 +25,6 @@ def randomReads():
     parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=random). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
-    parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
     parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (deafult=embed).",type=str,default=":embed")
     
     args = parser.parse_args()
@@ -74,7 +73,7 @@ def randomReads():
                     else: starts = args.starts
                     first = False
 
-                if args.start==None: start = np.random.randint(0,high=len(seq)-L)
+                if args.starts==None: start = np.random.randint(0,high=len(seq)-L)
                 header = fasta.id
                 header = ">"+header+args.addToReadName
                 newseq = seq
