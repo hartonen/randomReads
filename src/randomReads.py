@@ -22,9 +22,11 @@ def randomReads():
     parser.add_argument("--seqs",help="Full path to the fasta/fastq-file containing the reads where the PFM is embedded to. If not given, background is generated using the given mononucleotide frequencies.",type=str,default=None)
     parser.add_argument("--L",help="Length of the output sequences (default=100, overruled by the sequence length of --seqs if given).",type=int,default=100)
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
-    parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=middle of the read). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
+    parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=random). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
+    parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
+    parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (deafult=embed).",type=str,default=":embed")
     
     args = parser.parse_args()
 
@@ -68,12 +70,13 @@ def randomReads():
                         if len(PFMs)>1:
                             print("Define start positions for the embedded matches!")
                             exit
-                        starts = [int(len(seq)/2-L/2)]
+                        starts = [np.random.randint(0,high=len(seq)-Ls[0])]
                     else: starts = args.starts
                     first = False
 
+                if args.start==None: start = np.random.randint(0,high=len(seq)-L)
                 header = fasta.id
-                header = ">"+header+":embed"
+                header = ">"+header+args.addToReadName
                 newseq = seq
                 for p in range(0,len(PFMs)):
                     randoms = np.random.rand(Ls[p])
@@ -108,7 +111,7 @@ def randomReads():
                         if len(PFMs)>1:
                             print("Define start positions for the embedded matches!")
                             exit
-                        starts = [int(args.L/2-L/2)]
+                        starts = [int(np.random.randint(0,high=len(seq)-Ls[p]))]
                     else: starts = args.starts
 
                 #adding the PFM entries
