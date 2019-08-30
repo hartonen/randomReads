@@ -18,27 +18,37 @@ def randomReads():
     parser.add_argument("outfile",help="Output fasta-file name.",type=str)
 
     #OPTIONAL PARAMETERS
-    parser.add_argument("--PFM",help="Full path to the PFM-file. If given, sequences from this PFM are inserted in the middle of the reads (unless another position is specified with --start option). If PFM is not given, random sequences with the given mononucleotide frequencies are produced.",type=str,default=None)
+    parser.add_argument("--PFMs",help="Full path(s) to the PFM-file(s). If given, sequences from this PFM are inserted in the middle of the reads (unless another position is specified with --start option). If PFM is not given, random sequences with the given mononucleotide frequencies are produced.",type=str,default=None,nargs='+')
     parser.add_argument("--seqs",help="Full path to the fasta/fastq-file containing the reads where the PFM is embedded to. If not given, background is generated using the given mononucleotide frequencies.",type=str,default=None)
     parser.add_argument("--L",help="Length of the output sequences (default=100, overruled by the sequence length of --seqs if given).",type=int,default=100)
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
-    parser.add_argument("--start",help="Start position of the inserted PFM-sequences (default=middle of the read).",type=int,default=None)
+    parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=middle of the read). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
+    parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
     
     args = parser.parse_args()
 
     #reading in the pfm/pwm if it is given
-    if args.PFM!=None:
-        with open(args.PFM,'rt') as csvfile:
-            r = csv.reader(csvfile,delimiter='\t')
-            PFM = []
-            for row in r: PFM.append([float(i) for i in row])
-        PFM = np.array(PFM)
-        #normalizing the matrix entries so that each column sums up to one
-        L = PFM.shape[1]
-        for i in range(0,L): PFM[:,i] /= sum(PFM[:,i])
-        #print(PFM)
-        #print(PFM.shape)
+    if args.PFMs!=None:
+        PFMs = [] #list containing the normalised PFM matrices
+        Ls = [] #list containing the PFM lengths
+        for PFMfile in args.PFMs:
+            with open(PFMfile,'rt') as csvfile:
+                r = csv.reader(csvfile,delimiter='\t')
+                PFMs.append([])
+                for row in r: PFMs[-1].append([float(i) for i in row])
+            PFMs[-1] = np.array(PFMs[-1])
+            Ls.append(PFMs[-1].shape[1])
+            if args.concensus=='no':
+                #normalizing the matrix entries so that each column sums up to one
+                for i in range(0,Ls[-1]): PFMs[-1][:,i] /= sum(PFMs[-1][:,i])
+            else:
+                #setting all other matrix entries but the concensus sequence as 0
+                concensus = np.argmax(PFMs[-1],axis=0)
+                PFMs[-1] = np.zeros(shape=PFMs[-1].shape)
+                for i in range(0,PFMs[-1].shape[1]): PFMs[-1][concensus[i],i] = 1.0
+
+    print(PFMs)
 
     #either reading in or generating the output sequences one by one
     if args.seqs!=None:
@@ -54,42 +64,55 @@ def randomReads():
                 seq = str(fasta.seq).upper()
                 if first:
                     #determining the insertion position for the PFM-derived sequences
-                    if args.start==None: start = int(len(seq)/2-L/2)
-                    else: start = args.start
+                    if args.starts==None:
+                        if len(PFMs)>1:
+                            print("Define start positions for the embedded matches!")
+                            exit
+                        starts = [int(len(seq)/2-L/2)]
+                    else: starts = args.starts
                     first = False
 
                 header = fasta.id
                 header = ">"+header+":embed"
-                randoms = np.random.rand(L)
-                PFM_seq = ""
-                for i in range(0,len(randoms)):
-                    nucl_index = 0
-                    count = PFM[0,i]
-                    while True:
-                        if count>=randoms[i]:
-                            if nucl_index==0: PFM_seq += 'A'
-                            elif nucl_index==1: PFM_seq += 'C'
-                            elif nucl_index==2: PFM_seq += 'G'
-                            elif nucl_index==3: PFM_seq += 'T'
-                            break
-                        nucl_index += 1
-                        count += PFM[nucl_index,i]
+                newseq = seq
+                for p in range(0,len(PFMs)):
+                    randoms = np.random.rand(Ls[p])
+                    PFM_seq = ""
+                    for i in range(0,len(randoms)):
+                        nucl_index = 0
+                        count = PFMs[p][0,i]
+                        while True:
+                            if count>=randoms[i]:
+                                if nucl_index==0: PFM_seq += 'A'
+                                elif nucl_index==1: PFM_seq += 'C'
+                                elif nucl_index==2: PFM_seq += 'G'
+                                elif nucl_index==3: PFM_seq += 'T'
+                                break
+                            nucl_index += 1
+                            count += PFMs[p][nucl_index,i]
+                    newseq = newseq[:starts[p]]+PFM_seq+newseq[starts[p]+Ls[p]:]
                 #saving the new sequence
                 w.writerow([header])
-                w.writerow([seq[:start]+PFM_seq+seq[start+L:]])
+                w.writerow([newseq])
     else:
         #generating the background sequence from the the given nucleotide frequencies
         #creating one args.L length PWM where all sequences are drawn from
         full_PFM = np.ones(shape=(4,args.L))
         for i in range(0,4): full_PFM[i,:] *= args.bgfreqs[i]
         #inserting the PFM-counts if needed
-        if args.PFM!=None:
-            #determining the insertion position for the PFM-derived sequences
-            if args.start==None: start = int(args.L/2-L/2)
-            else: start = args.start
+        if args.PFMs!=None:
+            for p in range(0,len(args.PFMs)):
+                #determining the insertion positions for the PFM-derived sequences
+                if p==0:
+                    if args.starts==None:
+                        if len(PFMs)>1:
+                            print("Define start positions for the embedded matches!")
+                            exit
+                        starts = [int(args.L/2-L/2)]
+                    else: starts = args.starts
 
-            #adding the PFM entries
-            full_PFM[:,start:start+L] = PFM
+                #adding the PFM entries
+                full_PFM[:,starts[p]:starts[p]+Ls[p]] = PFMs[p]
 
 
         #print(full_PFM)
