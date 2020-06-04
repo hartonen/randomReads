@@ -22,10 +22,11 @@ def randomReads():
     parser.add_argument("--seqs",help="Full path to the fasta/fastq-file containing the reads where the PFM is embedded to. If not given, background is generated using the given mononucleotide frequencies.",type=str,default=None)
     parser.add_argument("--L",help="Length of the output sequences (default=100, overruled by the sequence length of --seqs if given).",type=int,default=100)
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
+    parser.add_argument("--distance",help="If given, a pair of PFMs is always inserted at a fixed istance from each other (default=None)",type=int,default=None)
     parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=random). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
     parser.add_argument("--bgfreqs",help="Background nucleotide frequencies: A, C, G, T (default=0.25,0.25,0.25,0.25).",type=float,default=[0.25,0.25,0.25,0.25],nargs=4)
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
-    parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (deafult=embed).",type=str,default=":embed")
+    parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (default=embed).",type=str,default=":embed")
     
     args = parser.parse_args()
 
@@ -49,8 +50,6 @@ def randomReads():
                 PFMs[-1] = np.zeros(shape=PFMs[-1].shape)
                 for i in range(0,PFMs[-1].shape[1]): PFMs[-1][concensus[i],i] = 1.0
 
-    print(PFMs)
-
     #either reading in or generating the output sequences one by one
     if args.seqs!=None:
         #reading in the background sequences from file
@@ -67,16 +66,48 @@ def randomReads():
                     #determining the insertion position for the PFM-derived sequences
                     if args.starts==None:
                         if len(PFMs)>1:
-                            print("Define start positions for the embedded matches!")
-                            exit
-                        starts = [np.random.randint(0,high=len(seq)-Ls[0])]
+                            #print("Define start positions for the embedded matches!")
+                            #exit
+                            #we simply draw start positions by random until they don't overlap
+                            #this works currently up to two motifs only
+                            while True:
+                                starts = [np.random.randint(0,high=len(seq)-Ls[0]),np.random.randint(0,high=len(seq)-Ls[1])]
+                                if starts[0]<starts[1]:
+                                    if starts[0]+Ls[0]<starts[1]: break
+                                else:
+                                    if starts[1]+Ls[1]<starts[0]: break
+                                    
+                        else: starts = [np.random.randint(0,high=len(seq)-Ls[0])]
                     else: starts = args.starts
                     first = False
 
-                if args.starts==None: start = np.random.randint(0,high=len(seq)-L)
+                if args.starts==None:
+                    if len(PFMs)<2: starts = [np.random.randint(0,high=len(seq)-Ls[0])]
+                    else:
+                        if args.distance!=None:
+                            #this only works for pairs currently
+                            #first draw position for the first of pair
+                            first_tf_ind = np.random.randint(0,high=2)
+                            starts = [0,0]
+                            #print(first_tf_ind)
+                            if first_tf_ind==1:
+                                starts[1] = np.random.randint(0,high=len(seq)-Ls[0]-Ls[1]-args.distance)
+                                starts[0] = starts[1]+Ls[1]+args.distance
+                            else:
+                                starts[0] = np.random.randint(0,high=len(seq)-Ls[0]-Ls[1]-args.distance)
+                                starts[1] = starts[0]+Ls[0]+args.distance
+                        else:
+                            while True:
+                                starts = [np.random.randint(0,high=len(seq)-Ls[0]),np.random.randint(0,high=len(seq)-Ls[1])]
+                                if starts[0]<starts[1]:
+                                    if starts[0]+Ls[0]<starts[1]: break
+                                else:
+                                    if starts[1]+Ls[1]<starts[0]: break
+
                 header = fasta.id
                 header = ">"+header+args.addToReadName
                 newseq = seq
+                #print("starts:"+str(starts))
                 for p in range(0,len(PFMs)):
                     randoms = np.random.rand(Ls[p])
                     PFM_seq = ""
@@ -85,10 +116,10 @@ def randomReads():
                         count = PFMs[p][0,i]
                         while True:
                             if count>=randoms[i]:
-                                if nucl_index==0: PFM_seq += 'A'
-                                elif nucl_index==1: PFM_seq += 'C'
-                                elif nucl_index==2: PFM_seq += 'G'
-                                elif nucl_index==3: PFM_seq += 'T'
+                                if nucl_index==0: PFM_seq += 'a'
+                                elif nucl_index==1: PFM_seq += 'c'
+                                elif nucl_index==2: PFM_seq += 'g'
+                                elif nucl_index==3: PFM_seq += 't'
                                 break
                             nucl_index += 1
                             count += PFMs[p][nucl_index,i]
