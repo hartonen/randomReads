@@ -24,7 +24,7 @@ def randomReads():
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
     parser.add_argument("--distance",help="If given, a pair of PFMs is always inserted at a fixed istance from each other (default=None)",type=int,default=None)
     parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=random). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
-    parser.add_argument("--bgfreqs",help="Background alphabet frequencies, default is flat background distribution. Order for DNA: A, C, G, T. Order for protein: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, U, V, W, Y.",type=float,default=None,nargs='+')
+    parser.add_argument("--bgfreqs",help="Background alphabet frequencies, default is flat background distribution. Order for DNA: A, C, G, T. Order for protein: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y.",type=float,default=None,nargs='+')
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
     parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (default=embed).",type=str,default=":embed")
     parser.add_argument("--alphabet",help="Alphabet used, choices are DNA (=default) or protein.",type=str,choices=['DNA','protein'],default='DNA')
@@ -134,7 +134,7 @@ def randomReads():
         if args.alphabet=='DNA':
             A = 4 #alphabet length
         elif args.alphabet=='protein':
-            A = 21 #alphabet length
+            A = 20 #alphabet length
         full_PFM = np.ones(shape=(A,args.L))
         if args.bgfreqs!=None:
             if len(args.bgfreqs)!=A:
@@ -200,10 +200,9 @@ def randomReads():
                                 elif index==14: PFM_seq += 'R'
                                 elif index==15: PFM_seq += 'S'
                                 elif index==16: PFM_seq += 'T'
-                                elif index==17: PFM_seq += 'U'
-                                elif index==18: PFM_seq += 'V'
-                                elif index==19: PFM_seq += 'W'
-                                elif index==20: PFM_seq += 'Y'
+                                elif index==17: PFM_seq += 'V'
+                                elif index==18: PFM_seq += 'W'
+                                elif index==19: PFM_seq += 'Y'
                                 break
                         index += 1
                         count += full_PFM[index,i]
