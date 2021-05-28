@@ -24,10 +24,10 @@ def randomReads():
     parser.add_argument("--N",help="Number of sequences generated (default=100000, overruled by the number of sequences in --seqs if given).",type=int,default=100000)
     parser.add_argument("--distance",help="If given, a pair of PFMs is always inserted at a fixed istance from each other (default=None)",type=int,default=None)
     parser.add_argument("--starts",help="Start position(s) of the inserted PFMs (default=random). If multiple PFMs given, each needs to be given its own start position.",type=int,default=None,nargs='+')
-    parser.add_argument("--bgfreqs",help="Background alphabet frequencies, default is flat background distribution. Order for DNA: A, C, G, T. Order for protein: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y.",type=float,default=None,nargs='+')
+    parser.add_argument("--bgfreqs",help="Background alphabet frequencies, default is flat background distribution. Order for DNA: A, C, G, T. Order for protein: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y. Order for RNA: A, C, G, U.",type=float,default=None,nargs='+')
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
     parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (default=embed).",type=str,default=":embed")
-    parser.add_argument("--alphabet",help="Alphabet used, choices are DNA (=default) or protein.",type=str,choices=['DNA','protein'],default='DNA')
+    parser.add_argument("--alphabet",help="Alphabet used, choices are DNA (=default) or protein.",type=str,choices=['DNA','protein','RNA'],default='DNA')
     
     args = parser.parse_args()
 
@@ -131,7 +131,7 @@ def randomReads():
     else:
         #generating the background sequence from the the given alphabet frequencies
         #creating one args.L length PWM where all sequences are drawn from
-        if args.alphabet=='DNA':
+        if args.alphabet=='DNA' or args.alphabet=='RNA':
             A = 4 #alphabet length
         elif args.alphabet=='protein':
             A = 20 #alphabet length
@@ -181,6 +181,12 @@ def randomReads():
                                 elif index==1: PFM_seq += 'C'
                                 elif index==2: PFM_seq += 'G'
                                 elif index==3: PFM_seq += 'T'
+                                break
+                            elif args.alphabet=='RNA':
+                                if index==0: PFM_seq += 'A'
+                                elif index==1: PFM_seq += 'C'
+                                elif index==2: PFM_seq += 'G'
+                                elif index==3: PFM_seq += 'U'
                                 break
                             elif args.alphabet=='protein':
                                 if index==0: PFM_seq += 'A'
