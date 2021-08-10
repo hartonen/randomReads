@@ -1,9 +1,7 @@
 
-#randomReads
+# randomReads
 
-Tuomo Hartonen 03.01.2019
-
-##INTRODUCTION
+## INTRODUCTION
 
 RandomReads is a simple python script for embedding transcription factor binding motifs (input as PFM matrices) to given DNA sequences or to a given mononucleotide background. Python packages needed (and the versions tested with):
 
@@ -17,9 +15,9 @@ No installation is required. To use the randomReads.py script the src/ directory
 
 `export PATH=$PATH:home/randomReads/src`
 
-In examples below we use Bedtools (https://bedtools.readthedocs.io/en/latest/index.html) to fetch random background sequences from the human genome.
+In examples below we use [Bedtools](https://bedtools.readthedocs.io/en/latest/index.html) to fetch random background sequences from the human genome.
 
-##USAGE
+## USAGE
 
 ```
 usage: randomReads.py [-h] [--PFM PFM] [--seqs SEQS] [--L L] [--N N]
@@ -47,7 +45,7 @@ optional arguments:
 ```
 
 
-##EXAMPLE 1: EMBEDDING CTCF MOTIF TO GENOMIC BACKGROUND
+## EXAMPLE 1: EMBEDDING CTCF MOTIF TO GENOMIC BACKGROUND
 
 We use bedtools to fetch random regions from the hg19 human genome assembly. First we extract 1000000 random 100 bp long regions from the genome:
 
