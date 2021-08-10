@@ -44,7 +44,7 @@ def randomizeMatchingPositions():
                     newseq += seq[i]
                 else: newseq += args.alphabet[rands[i]]
                 if N_mismatch>args.N: break
-            if n_mismatch==args.N:
+            if N_mismatch==args.N:
                 #save the sequence
                 w.writerow(['>'+name+args.addToReadName])
                 w.writerow([newseq])
