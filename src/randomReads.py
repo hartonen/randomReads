@@ -28,9 +28,11 @@ def randomReads():
     parser.add_argument("--concensus",help="If yes, always insert the concensus of the PWM(s). If no (=defaults), sample from the PFM(s).",type=str,choices=['yes','no'],default='no')
     parser.add_argument("--addToReadName",help="String added to read names to distinguish them from background reads (default=embed).",type=str,default=":embed")
     parser.add_argument("--alphabet",help="Alphabet used, choices are DNA (=default) or protein.",type=str,choices=['DNA','protein','RNA'],default='DNA')
+    parser.add_argument("--seed",help="Seed for the random number generator (default=42).",type=int,default=42)
     
     args = parser.parse_args()
-
+    np.random.seed(args.seed)
+    
     #reading in the pfm/pwm if it is given
     if args.PFMs!=None:
         PFMs = [] #list containing the normalised PFM matrices

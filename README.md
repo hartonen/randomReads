@@ -20,28 +20,53 @@ In examples below we use [Bedtools](https://bedtools.readthedocs.io/en/latest/in
 ## USAGE
 
 ```
-usage: randomReads.py [-h] [--PFM PFM] [--seqs SEQS] [--L L] [--N N]
-                      [--start START]
-		      [--bgfreqs BGFREQS BGFREQS BGFREQS BGFREQS]
-		      outfile
+usage: randomReads.py [-h] [--PFMs PFMS [PFMS ...]] [--seqs SEQS] [--L L]
+                      [--N N] [--distance DISTANCE]
+                      [--starts STARTS [STARTS ...]]
+                      [--bgfreqs BGFREQS [BGFREQS ...]] [--concensus {yes,no}]
+                      [--addToReadName ADDTOREADNAME]
+                      [--alphabet {DNA,protein,RNA}] [--seed SEED]
+                      outfile
 
 positional arguments:
   outfile               Output fasta-file name.
 
 optional arguments:
   -h, --help            show this help message and exit
-  --PFM PFM             Full path to the PFM-file. If given, sequences from
-  			this PFM are inserted in the middle of the reads
+  --PFMs PFMS [PFMS ...]
+                        Full path(s) to the PFM-file(s). If given, sequences
+                        from this PFM are inserted in the middle of the reads
                         (unless another position is specified with --start
-			option). If PFM is not given, random sequences with
-		        the given mononucleotide frequencies are produced.
+                        option). If PFM is not given, random sequences with
+                        the given alphabet frequencies are produced.
   --seqs SEQS           Full path to the fasta/fastq-file containing the reads
-			where the PFM is embedded to. If not given, background
-                        is generated using the given mononucleotide															                      frequencies.
+                        where the PFM is embedded to. If not given, background
+                        is generated using the given background alphabet
+                        frequencies.
   --L L                 Length of the output sequences (default=100, overruled
-			by the sequence length of --seqs if given).															--N N                 Number of sequences generated (default=100000,																	    overruled by the number of sequences in --seqs if
-			given).																				--start START         Start position of the inserted PFM-sequences
-			(default=middle of the read).																	--bgfreqs BGFREQS BGFREQS BGFREQS BGFREQS																				    Background nucleotide frequencies: A, C, G, T																	  (default=0.25,0.25,0.25,0.25).															      
+                        by the sequence length of --seqs if given).
+  --N N                 Number of sequences generated (default=100000,
+                        overruled by the number of sequences in --seqs if
+                        given).
+  --distance DISTANCE   If given, a pair of PFMs is always inserted at a fixed
+                        istance from each other (default=None)
+  --starts STARTS [STARTS ...]
+                        Start position(s) of the inserted PFMs
+                        (default=random). If multiple PFMs given, each needs
+                        to be given its own start position.
+  --bgfreqs BGFREQS [BGFREQS ...]
+                        Background alphabet frequencies, default is flat
+                        background distribution. Order for DNA: A, C, G, T.
+                        Order for protein: A, C, D, E, F, G, H, I, K, L, M, N,
+                        P, Q, R, S, T, V, W, Y. Order for RNA: A, C, G, U.
+  --concensus {yes,no}  If yes, always insert the concensus of the PWM(s). If
+                        no (=defaults), sample from the PFM(s).
+  --addToReadName ADDTOREADNAME
+                        String added to read names to distinguish them from
+                        background reads (default=embed).
+  --alphabet {DNA,protein,RNA}
+                        Alphabet used, choices are DNA (=default) or protein.
+  --seed SEED           Seed for the random number generator (default=42).															      
 ```
 
 
